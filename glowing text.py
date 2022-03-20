@@ -1,6 +1,3 @@
-from PIL import Image
-from math import pi, e, sqrt
-
 import arcade
 import arcade.gl as gl
 import arcade.gl.geometry as geometry
@@ -160,6 +157,7 @@ class BlurryTextExample(arcade.Window):
 
         self.render_quad = geometry.quad_2d_fs()
         self.blur_program = self.ctx.program(vertex_shader=VERTEX_SHADER, fragment_shader=FRAGMENT_SHADER)
+
         # The two images we will bounce between to do the blurring.
         self.image_1 = self.ctx.texture(self.image_size, components=4, wrap_x=gl.CLAMP_TO_EDGE, wrap_y=gl.CLAMP_TO_EDGE,
                                         filter=(gl.NEAREST, gl.NEAREST))
@@ -177,6 +175,9 @@ class BlurryTextExample(arcade.Window):
         arcade.set_viewport(0, self.image_size[0], 0, self.image_size[1])
         self.text.draw()
 
+        # For all the times that we want the blur to be applied (the more blurs the more spread out) blur the first
+        # image and draw it onto the second. We then flip the frame_buffers. This way we aren't editing the texture we
+        # are reading form.
         for _ in range(BLUR_COUNT):
             framebuffer_2.use()
             framebuffer_2.clear()
@@ -188,11 +189,11 @@ class BlurryTextExample(arcade.Window):
             self.image_1, self.image_2 = self.image_2, self.image_1
             framebuffer_1, framebuffer_2 = framebuffer_2, framebuffer_1
 
-        self.text.color = arcade.color.WHITE
+        # Draw the text back over the top. This ensures that there is still readable text, and really improves the glow
+        # effect.
         self.text.draw()
 
-
-
+        # switch back to the screen and reset the viewport.
         self.use()
         arcade.set_viewport(0, self.width, 0, self.height)
 
@@ -215,7 +216,6 @@ class BlurryTextExample(arcade.Window):
 
     def on_draw(self):
         self.clear()
-        # self.text.draw()
 
         self.image_1.use(0)
         self.quad.render(self.program)
